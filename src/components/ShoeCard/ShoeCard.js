@@ -1,9 +1,20 @@
-import React from 'react';
-import styled from 'styled-components/macro';
+import React from "react";
+import styled from "styled-components/macro";
 
-import { COLORS, WEIGHTS } from '../../constants';
-import { formatPrice, pluralize, isNewShoe } from '../../utils';
-import Spacer from '../Spacer';
+import { COLORS, WEIGHTS } from "../../constants";
+import { formatPrice, pluralize, isNewShoe } from "../../utils";
+import Spacer from "../Spacer";
+
+const BADGE_TEXT = {
+  "on-sale": "Sale",
+  "new-release": "Just Released",
+  default: "",
+};
+
+const VARIANT_COLORS = {
+  "on-sale": COLORS.primary,
+  "new-release": COLORS.secondary,
+};
 
 const ShoeCard = ({
   slug,
@@ -31,23 +42,36 @@ const ShoeCard = ({
       ? 'new-release'
       : 'default'
 
-  return (
-    <Link href={`/shoe/${slug}`}>
-      <Wrapper>
-        <ImageWrapper>
-          <Image alt="" src={imageSrc} />
-        </ImageWrapper>
-        <Spacer size={12} />
-        <Row>
-          <Name>{name}</Name>
-          <Price>{formatPrice(price)}</Price>
-        </Row>
-        <Row>
-          <ColorInfo>{pluralize('Color', numOfColors)}</ColorInfo>
-        </Row>
-      </Wrapper>
-    </Link>
-  );
+  const badgeText = BADGE_TEXT[variant];
+  if (variant)
+    return (
+      <Link href={`/shoe/${slug}`}>
+        <Wrapper>
+          <ImageWrapper>
+            <Image alt="" src={imageSrc} />
+            {badgeText && (
+              <ImageBadge
+                style={{ "--backgroundColor": `${VARIANT_COLORS[variant]}` }}
+              >
+                {badgeText}
+              </ImageBadge>
+            )}
+          </ImageWrapper>
+          <Spacer size={12} />
+          <Row>
+            <Name>{name}</Name>
+            <Price variant={variant}>{formatPrice(price)}</Price>
+          </Row>
+          <Spacer size={6} />
+          <Row>
+            <ColorInfo>{pluralize("Color", numOfColors)}</ColorInfo>
+            {variant === "on-sale" && (
+              <SalePrice>{formatPrice(salePrice)}</SalePrice>
+            )}
+          </Row>
+        </Wrapper>
+      </Link>
+    );
 };
 
 const Link = styled.a`
@@ -61,10 +85,29 @@ const ImageWrapper = styled.div`
   position: relative;
 `;
 
-const Image = styled.img``;
+const Image = styled.img`
+  width: 100%;
+  border-radius: 16px 16px 4px 4px;
+`;
+
+const ImageBadge = styled.div`
+  position: absolute;
+  top: 12px;
+  right: -4px;
+  color: ${COLORS.white};
+  background-color: var(--backgroundColor);
+  height: 32px;
+  font-size: ${14 / 16}rem;
+  font-weight: ${WEIGHTS.bold};
+  line-height: 32px;
+  border-radius: 2px;
+  padding: 0 10px;
+`;
 
 const Row = styled.div`
   font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
 `;
 
 const Name = styled.h3`
@@ -72,7 +115,12 @@ const Name = styled.h3`
   color: ${COLORS.gray[900]};
 `;
 
-const Price = styled.span``;
+const Price = styled.span`
+  color: ${({ variant }) =>
+    variant === "on-sale" ? COLORS.gray[700] : "inherit"};
+  text-decoration: ${({ variant }) =>
+    variant === "on-sale" ? "line-through" : "none"};
+`;
 
 const ColorInfo = styled.p`
   color: ${COLORS.gray[700]};
